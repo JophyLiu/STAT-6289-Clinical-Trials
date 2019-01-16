@@ -1,0 +1,160 @@
+---
+title: "FinalExam"
+author: "Jiaying Liu"
+date: "December 13, 2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1
+The table below summarize data from a clinical trial to compare response to two treatments (a test drug and a placebo).
+1) State the null and alternative hypothesis to be tested;
+In this dataset, we have aa 2 by 2 contingency table for response and nonresponse of placebo and test_drug. We want to compare response in two group, so we can actually test the response rate in two group 
+
+Assume the response in placebo is $p1$;
+
+Assume the respnse in Treatment is $P2$
+```{r}
+n1=64
+n2=60
+p1=16/64
+p2=40/60
+t=(p1-p2)/(sqrt(p1*(1-p1)/n1+p2*(1-p2)/n2))
+pvalue=2*(1-pnorm(abs(t),mean=0,sd=1))
+cbind(t,pvalue)
+```
+
+
+## 2
+
+```{r}
+m_old=41.52
+m_new=51.48
+n_old=32
+n_new=30
+sd_old=17.15
+sd_new=11.01
+sp=((n_old-1)*(sd_old)^2+(n_new-1)*(sd_new)^2)/(n_old+n_new-2)
+t=(m_old-m_new)/(sqrt(sp)*sqrt(1/n_old+1/n_new))
+pvalue=pt(t,df=(n_old+n_new-2))
+cbind(t,pvalue)
+
+```
+```{r}
+t=(m_old-m_new)/(sqrt((sd_old)^2/n_old+(sd_new)^2/n_new))
+c=((sd_old)^2/n_old)/(((sd_old)^2/n_old)+((sd_new)^2/n_new))
+df=((n_old-1)*(n_new-1))/((n_old-1)*(1-c)^2+(n_new-1)*c^2)
+pvalue=pt(t,df)
+cbind(t,pvalue)
+```
+
+
+
+##3
+#(a)
+#(b)
+#(c)
+```{r}
+p1=0.8
+p2=0.85
+lam1=1
+lam2=1.1
+
+#1
+m1=1/lam1
+m2=1/lam2
+
+s1=1/lam1^2
+s2=1/lam2^2
+
+#2
+#m1=lam1
+#m2=lam2
+
+#s1=lam1^2
+#s2=lam2^2
+
+v1=p1*s1+p1*(1-p1)*m1^2
+v2=p2*s2+p2*(1-p2)*m2^2
+
+c1=p1*m1-p2*m2
+
+n=(v1+v2)/(c1^2)*((1.96+1.282)^2)
+n
+```
+
+## (d)
+
+
+```{r}
+p1=0.8
+p2=0.8
+lam1=1
+lam2=1
+n1=10000 # testing 10,000 times
+t1err=0
+for (i in 1:n1){
+n=24981
+z1=rexp(n,rate=lam1)
+u1=rbinom(n,1,p1)
+x=z1*u1
+
+z2=rexp(n,rate=lam2)
+u2=rbinom(n,1,p2)
+y=z2*u2
+
+   if (((t.test(x,y,mu=0,alternative = "two.sided",var.equal = FALSE))$p.value)<=0.05) (t1err=t1err+1) 
+}
+cat("Type I error rate in percentage is", (t1err/n1)*100,"%")
+```
+https://stats.stackexchange.com/questions/148526/how-to-simulate-type-i-error-and-type-ii-error
+```{r}
+p1=0.8
+p2=0.85
+lam1=1
+lam2=1.1
+m1=1/lam1
+m2=1/lam2
+c1=p1*m1-p2*m2
+#v1=p1*s1+p1*(1-p1)*m1^2
+#v2=p2*s2+p2*(1-p2)*m2^2
+#se=sqrt(v1/24973+v2/24973)
+
+
+
+
+n1=10000 # testing 10,000 times
+t2err=0
+for (i in 1:n1){
+n=24981
+z1=rexp(n,rate=lam1)
+u1=rbinom(n,1,p1)
+x=z1*u1
+
+z2=rexp(n,rate=lam2)
+u2=rbinom(n,1,p2)
+y=z2*u2
+
+if (((t.test(x,y, mu=0))$p.value)<=0.05) (t2err=t2err+1) 
+}
+cat("power is", (t2err/n1)*100,"%")
+
+
+```
+
+```{r}
+
+```
+
+```{r}
+library(lme4)
+MyData=read.csv("d:/final3.csv")
+m2=lmer(different~Control_treatment+Visit_number+Control_treatment*Visit_number+(Visit_number |PATID),data=MyData)
+summary(m2)
+```
+

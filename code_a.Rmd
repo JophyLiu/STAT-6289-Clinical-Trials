@@ -1,0 +1,131 @@
+---
+title: "R Notebook"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+library(reshape)
+final=read.csv("D:/GWU-A1C-Graphs.csv", header = TRUE)
+final_trt=final[final[,"Control.treatment"]=="Treatment", ]
+final_ctr=final[final[,"Control.treatment"]=="Control", ]
+Uni_id=unique(final[,"PATID"])
+Id_Trt=unique(final_trt[,"PATID"])
+Id_Crt=unique(final_ctr[,"PATID"])
+Mean_Trt=aggregate(HBA1C.level ~ Visit.number+ Control.treatment, data =final_trt, mean)
+Mean_Ctr=aggregate(HBA1C.level ~ Visit.number+ Control.treatment, data =final_ctr, mean)
+SD_Trt=aggregate(HBA1C.level ~ Visit.number+ Control.treatment, data =final_trt, sd)
+SD_Ctr=aggregate(HBA1C.level ~ Visit.number+ Control.treatment, data =final_ctr, sd)
+Mean_Trt=rename(Mean_Trt,c("HBA1C.level"="Mean of HBA1C.level"))
+Mean_Ctr=rename(Mean_Ctr,c("HBA1C.level"="Mean of HBA1C.level"))
+SD_Trt=rename(SD_Trt,c("HBA1C.level"="Standard Error of HBA1C.level"))
+SD_Ctr=rename(SD_Ctr,c("HBA1C.level"="Standard Error of HBA1C.level"))
+Mean_Trt
+Mean_Ctr
+SD_Trt
+SD_Ctr
+```
+From above tables, we get the mean and standard error for each treatment arm at each visit.
+
+1) T-test
+```{r}
+## t-test
+t=c()
+for (i in 1:9){
+t[i]=t.test(final_trt[which(final_trt$Visit.number==i),2],final_ctr[which(final_ctr$Visit.number==i),2])$p.value
+}
+t
+```
+2) Wilcoxon rank sum test
+```{r}
+## Wilcoxon rank sum test
+w=c()
+for (i in 1:9){
+w[i]=wilcox.test(final_trt[which(final_trt$Visit.number==i),2],final_ctr[which(final_ctr$Visit.number==i),2])$p.value
+}
+w
+```
+From above table, we get Wilcoxon rank sum test's p-value for each visit.
+
+3) Permutation test
+```{r}
+## permutation test
+permu_test=function(x,y){
+nx=length(x)
+ny=length(y)
+n=nx+ny
+T0=t.test(x,y,var.equal = TRUE)$statistic
+xy=c(x,y)
+M=9999
+T=0
+for (i in 1:M){
+permxy=sample(xy,n)
+permx=permxy[c(1:nx)]
+permy=permxy[-c(1:nx)]
+T[i]=t.test(permx,permy,var.equal = TRUE)$statistic
+}
+pvalue=sum(abs(T)>=abs(T0))/M
+return(pvalue)
+}
+p=c()
+for (i in 1:9){
+p[i]=permu_test(final_trt[which(final_trt$Visit.number==i),2],final_ctr[which(final_ctr$Visit.number==i),2])
+}
+p
+```
+
+```{r}
+MyData=read.csv("d:/final3.csv")
+MyData_trt=MyData[MyData[,"Control_treatment"]=="Treatment", ]
+MyData_ctr=MyData[MyData[,"Control_treatment"]=="Control", ]
+```
+
+```{r}
+## t-test
+t=c()
+for (i in 2:9){
+t[i]=t.test(MyData_trt[which(MyData_trt$Visit_number==i),7],MyData_ctr[which(MyData_ctr$Visit_number==i),7])$p.value
+}
+t
+```
+
+```{r}
+w=c()
+for (i in 2:9){
+w[i]=wilcox.test(MyData_trt[which(MyData_trt$Visit_number==i),7],MyData_ctr[which(MyData_ctr$Visit_number==i),7])$p.value
+}
+w
+```
+
+```{r}
+## permutation test
+permu_test=function(x,y){
+nx=length(x)
+ny=length(y)
+n=nx+ny
+T0=t.test(x,y,var.equal = TRUE)$statistic
+xy=c(x,y)
+M=9999
+T=0
+for (i in 1:M){
+permxy=sample(xy,n)
+permx=permxy[c(1:nx)]
+permy=permxy[-c(1:nx)]
+T[i]=t.test(permx,permy,var.equal = TRUE)$statistic
+}
+pvalue=sum(abs(T)>=abs(T0))/M
+return(pvalue)
+}
+p=c()
+for (i in 2:9){
+p[i]=permu_test(MyData_trt[which(MyData_trt$Visit_number==i),7],MyData_ctr[which(MyData_ctr$Visit_number==i),7])
+}
+p
+```
+
+

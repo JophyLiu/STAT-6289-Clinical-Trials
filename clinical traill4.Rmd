@@ -1,0 +1,191 @@
+---
+title: "Clinical trails hw4"
+author: "Jiaying Liu"
+date: "December 4, 2018"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Homework Set 4
+#Question 1
+This project relates to the analysis of the data in the file GWU-A1C-Graphs.csv. This is a longitudinal trial that observed levels of HbA1c from patients with type 1 diabetes at various
+visits including a baseline visit (Visit.nmber=1). The objective of the trial is to demonstrate that the treatment would lower patients' HbA1c more than the control.
+We will evaluate the treatment effective based on visits 1-9, so you will need to delete data collected
+at visit 10 and later visits. Labels of the column variables are given below.
+Visit.number: This gives the number for each visit the patient paid to the clinic. 1 is the baseline
+visit prior to the start of intervention, thus 2 is the first visit after intervention.
+HBA1C.level: This is the primary endpoint of the trial. HbA1c is a biomarker for diabetes which
+is interpreted as the three-month average of blood sugar level in the body. This column gives the level
+of HbA1c at each visit.
+PATID: This gives the unique identication number of each patient. The same number is repeated
+because of multiple visits.
+Control.treatment: Tells you which arm the patients were assigned to.
+Age: Age of patients at enrollment to the study.
+
+# (1)
+Randomly select 20 patients from each treatment arm. For each arm, make a spaghetti plot of the HbA1c levels of the 20 patients against their visits. Put the two plots in the same figure with the same scales. Use red color for treatment arm and blue for control arm. What can you comment on the comparison of the two arms?
+
+```{r Preprocess the data}
+#After deleting the visit greater than 9, and read in dataset
+MyData=read.csv('d:/GWU-A1C-Graphs.csv')
+#Get variable names
+Var.list = names(MyData)
+#Get partial data by variables
+Partial.Data1 = MyData[,c("Visit.number", "HBA1C.level", "PATID")]
+Partial.Data2 = MyData[MyData[, "Visit.number"]==1, c("Visit.number", "HBA1C.level", "PATID")]
+Partial.Data3 = MyData[MyData[, "Control.treatment"]=="Treatment", c("Visit.number", "HBA1C.level", "PATID")]
+Trt.Data = MyData[MyData[,"Control.treatment"]=="Treatment",]
+Ctr.Data = MyData[MyData[,"Control.treatment"]=="Control",]
+#Get Patient IDs
+Unique.ids = unique(MyData[,"PATID"])
+#Get Patient IDs by treatment
+Trt.ids = unique(Trt.Data[,"PATID"])
+Ctr.ids = unique(Ctr.Data[,"PATID"])
+```
+
+Random choose the dataset
+
+```{r}
+set.seed(1234)
+#Random selection of 20 patients form control/treatment
+Ctr20 = sample(Ctr.ids, 20)
+Trt20 = sample(Trt.ids, 20)
+#Get data from selected patients
+Ctr20.Data = Ctr.Data[Ctr.Data[, "PATID"] %in% Ctr20,]
+Trt20.Data = Trt.Data[Trt.Data[, "PATID"] %in% Trt20,]
+library(lattice)
+library(latticeExtra)
+
+#Spaghetti plots
+##To put on the same figure
+##common scale
+x.min=1
+x.max=9
+y.min=min(MyData[,"HBA1C.level"])
+y.max=max(MyData[,"HBA1C.level"])
+a=xyplot(HBA1C.level ~ Visit.number, groups = PATID, data =Ctr20.Data, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col='blue')
+b=xyplot(HBA1C.level ~ Visit.number, groups = PATID, data =Trt20.Data, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col='red')
+a + as.layer(b)
+
+```
+
+First set.seed=1234 to make sure everytime the sampling result is the same. Aftering sampling 20 patient in each group and put it in the same scale, we can see that the red line which represent the treatment group are generally lower than blue line which represent the control group. However, the difference is so small. So, we could not know if the treatment would lower patients' HbA1c more than the control.
+
+# (2)
+Again using the HbA1c levels from (1), compute the sample means of HbA1c at each visit for each treatment arm. Make the mean plots by treatment group. Use red color for treatment arm and blue for control arm. What can you comment on the comparison of the two arms?
+
+```{r}
+##Get column mean by visit and treatment
+Mean.A1c = aggregate(HBA1C.level ~ Visit.number + Control.treatment, data=Ctr20.Data, mean)
+Mean.A1c
+Mean.A1t = aggregate(HBA1C.level ~ Visit.number + Control.treatment, data=Trt20.Data, mean)
+Mean.A1t
+#get mean plot
+x.min=1
+x.max=9
+y.min=min(MyData[,"HBA1C.level"])
+y.max=max(MyData[,"HBA1C.level"])
+a=xyplot(HBA1C.level ~ Visit.number, data =Mean.A1c, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col=4)
+b=xyplot(HBA1C.level ~ Visit.number, data =Mean.A1t, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col=2)
+a + as.layer(b)
+
+```
+
+From the above plot for the mean of treatment and control group. We can see that at the baseline level(visit=1), the level of HbAlc is greater than control group. In the following visit, it is obvious that the level of HbAlc in treatement is lower than the control. But when the visist come to 6 or more, the preformance of treatment is not good. However the mean is not that representive because it contain outlier. 
+
+#(3)
+Repeat the analysis (1) and (2), but this time using all patients. Comment on your findings.Are the findings similar to those from (1) and (2)?
+
+```{r}
+#all data
+x.min=1
+x.max=9
+y.min=min(MyData[,"HBA1C.level"])
+y.max=max(MyData[,"HBA1C.level"])
+a=xyplot(HBA1C.level ~ Visit.number, groups = PATID, data =Ctr.Data, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col='blue')
+b=xyplot(HBA1C.level ~ Visit.number, groups = PATID, data =Trt.Data, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col='red')
+a + as.layer(b)
+```
+According to the plot above, most patients in the treatment arm(red) have a lower level of HbA1c than the control arm(blue). So, we may conclude that the treatment would lower patients' HbA1c more than the control.
+
+```{r}
+#all data
+Mean.A1c = aggregate(HBA1C.level ~ Visit.number + Control.treatment, data=Ctr.Data, mean)
+Mean.A1c
+Mean.A1t = aggregate(HBA1C.level ~ Visit.number + Control.treatment, data=Trt.Data, mean)
+Mean.A1t
+x.min=1
+x.max=9
+y.min=min(MyData[,"HBA1C.level"])
+y.max=max(MyData[,"HBA1C.level"])
+a=xyplot(HBA1C.level ~ Visit.number, data =Mean.A1c, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col=4)
+b=xyplot(HBA1C.level ~ Visit.number, data =Mean.A1t, xlim=c(x.min,x.max), ylim=c(y.min,y.max),type ="l", xlab="visit", ylab="HbA1c Level", col=2)
+a + as.layer(b)
+
+
+```
+
+According to the mean plot above, the treatment arm(red) tends to have a lower HbA1c level than the control arm(blue) as the increasing of visit.Plus, the different of two group in the baseline level is become bigger and bigger since the visit change. So, we may conclude that the treatment would lower patients' HbA1c more than the control.
+
+#(4)
+For the data in (3), use a linear mixed effect model to test whether the two arms have the same rate of change.
+
+For the mixed linear model:
+let Y=HbAlc T=visit  x: treatment=1; control= 0
+So we have 
+$E(Y)=\beta_0 +\beta_1X+ \beta_2 T+ \beta X*T$
+when X=0 control group
+$E(Y)=\beta_0 +\beta_2 T$
+When X=1 treatment group
+$E(Y)=(\beta_0+\beta_1) +(\beta_2 +\beta)T$
+So in order to test the effect of treatment group, we actually is going to test 
+$ H_0: \beta=0$
+
+
+```{r}
+library(lme4)
+m2=lmer(HBA1C.level~Control.treatment+Visit.number+Control.treatment*Visit.number+(Visit.number | PATID),data=MyData)
+summary(m2)
+```
+
+From above imformation of estimation, we need to evalute the significance of \beta which is the effect of control.treatment:visit.number. we find out that the t value is -1.908 and the absolute value of t is 1.908 which is smaller than 1.96 (the value of $t_{1-\alpha/2}$) so we can not reject the original hypothesis which mean the two arm have same range of change. 
+```{r}
+library(nlme)
+mydata=na.omit(MyData)
+model_3=lme(HBA1C.level~Control.treatment+Visit.number+Control.treatment*Visit.number,data=mydata,random=~Visit.number |PATID, method='ML')
+summary(model_3)
+```
+By the other statement lme which is also be used in mixed model. After deleting all the missing observation, we dit the model and find out that the p-value control.treatment:visitnumber is still greater than 0.05, so we can say the beta is equal to zero and two arm have same range of change.
+
+
+#Question 2
+The sample size of 400 patients was based on comparison of the rate of change in HbA1c level between treatment and control. A compound symmetry correlation among repeated HbA1c was assumed with a common correlation coefficient of 0.5. A common standard deviation of
+1.2. Suppose everything else remains the same, what would the sample size be, respectively, if the correlation coefficient is 0.4, 0.45, 0.55, 0.60, 0.65, 0.70 and the standard deviation is 1, 1.1, 1.4, 1.5?
+Describe the relationship between the correlation and the sample size
+
+From the lecture note we have the formular 
+$m=\frac{2(z_{1-\alpha/2}+z_{1-\beta})^2(1+(n-1)\rho)\sigma^2}{ns_{x}^2d^2}$
+With this formular we can calculate the different between correlation and sample size
+
+
+```{r}
+constant=400/(1-0.5)/1.2/1.2
+corr=c(0.4,0.45,0.55,0.6,0.65,0.7)
+sd=c(1,1.1,1.4,1.5)
+result=c()
+for (correlation in corr){
+  for ( standard_deviation in sd){
+    sample.size=constant*(1-correlation)*standard_deviation*standard_deviation
+    result=rbind(result,data.frame(correlation,standard_deviation,sample.size))
+    
+  }
+}
+result
+```
+From the above result, there is a negative relationship between the correlation coefficient and the sample size, and there is a positive relationship between the standard deviation(sd) and the sample size.
+
