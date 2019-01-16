@@ -1,0 +1,79 @@
+---
+title: "However 1"
+output:
+  word_document: default
+  html_notebook: default
+---
+
+Question 4
+```{r}
+r=17.78
+p1=0.55
+p0=0.35
+n=35
+
+type1=1-dnorm((r-n*p0)/(sqrt(n*p0*(1-p0))))
+type1
+type2=1-dnorm((r-n*p1)/(sqrt(n*p1*(1-p1))))
+type2
+
+sample_size=((qnorm(1-0.05)*(sqrt(p0*(1-p0)))+qnorm(1-0.2)*(sqrt(p1*(1-p1))))/(p1-p0))^2
+sample_size
+
+```
+question 6
+```{r}
+r1=1
+n1=10
+r=5
+n=30
+p=seq(0,1,by = 0.01)
+a=min(n1,r)
+p=seq(0,1,by = 0.01)
+y=dbinom(2,n1,p)*(1-pbinom(r-2,n-n1,p))+dbinom(3,n1,p)*(1-pbinom(r-3,n-n1,p))+dbinom(4,n1,p)*(1-pbinom(r-4,n-n1,p))+dbinom(5,n1,p)*(1-pbinom(r-5,n-n1,p))
+plot(p,y,type="l",ylab = "R",xlab="p",main = "R VS P")
+```
+From the plot, we see that the R first incresed and attain the high peak when p approximate to 0.38 and then decreases after p around 0.4
+
+
+Question 7
+```{r}
+r1=1
+n1=10
+r=5
+n=30
+p=seq(0,1,by = 0.01)
+plot(p,30-(30-10)*pbinom(1,10,p),type="l",ylab = "EN",xlab="p",main = "EN VS P")
+```
+
+From the plot, we see that the EN increases from 20 to 30 as p increases from 0 to 1. EN grows to 30 at around p =0.6.
+```{r}
+r1=10
+n1=37
+r=31
+n=99
+p=seq(0.2,0.5,by = 0.05)
+n-(n-n1)*pbinom(r1,n1,p)
+```
+
+```{r}
+a=c()
+dif=c()
+for (n in 1:500)
+     {
+  p=0.3
+  s=n*p
+  PL=(1+((n-s+1)/(s*qf((0.05/2),df1=2*s,df2=2*(n-s+1)))))^(-1)  
+  PU=(1+((n-s)/((s+1)*qf(0.975,df1=2*(s+1),df2=2*(n-s)))))^(-1)
+  a[n]=PU-PL
+  dif[n]=a[n]-0.15
+}
+N=which.min(abs(dif))
+N
+
+
+
+```
+
+
+
